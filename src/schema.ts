@@ -78,7 +78,7 @@ export const Dongoose = <T extends z.ZodRawShape>(schema: T, { db, name, indexes
     const results = await db.getMany<Array<SchemaFullObject>>(
       Object.entries(query).map<[string, string]>(([key, value]) => [getCollectionName(schemaName, key), value]),
     );
-    return (results.filter((result) => result.value)?.value as SchemaFullObject) ?? null;
+    return (results.filter((result) => result.value)?.value as SchemaFullObject) ?? [];
   };
   const findOne = async (query: SchemaPartialObjectWithId) => {
     schemaValidationPartialObjectWithId.parse(query);
