@@ -70,16 +70,6 @@ export const Dongoose = <T extends z.ZodRawShape>(schema: T, { db, name, indexes
     return performTransaction(db, schemaName, schemaIndexes as Array<string>, { id, ...data }, 'set');
   };
 
-  const find = async (query: SchemaPartialObjectWithId) => {
-    schemaValidationPartialObjectWithId.parse(query);
-    if (Object.keys(query).length === 0) {
-      return null;
-    }
-    const results = await db.getMany<Array<SchemaFullObject>>(
-      Object.entries(query).map<[string, string]>(([key, value]) => [getCollectionName(schemaName, key), value]),
-    );
-    return (results.filter((result) => result.value)?.value as SchemaFullObject) ?? [];
-  };
   const findOne = async (query: SchemaPartialObjectWithId) => {
     schemaValidationPartialObjectWithId.parse(query);
     if (Object.keys(query).length === 0) {
@@ -131,9 +121,16 @@ export const Dongoose = <T extends z.ZodRawShape>(schema: T, { db, name, indexes
     }
     return performTransaction(db, name, schemaIndexes as Array<string>, item, 'delete');
   };
-
+  const findAll = async () => {
+    const results: Array<SchemaFullObject> = [];
+    const iterator = db.list({ prefix: schemaName });
+    for await (const { key, value } of iterator) {
+      results.push(value as SchemaFullObject);
+    }
+    return results;
+  };
   return {
-    find,
+    findAll,
     create,
     findOne,
     findById,
